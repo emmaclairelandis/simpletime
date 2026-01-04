@@ -6,6 +6,7 @@ public class Main {
             @Override
             public void run() {
                 new Toolbar();
+                new Menubar();
             }
         });
         //Stopwatch stopwatch = new Stopwatch();
