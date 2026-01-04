@@ -1,12 +1,16 @@
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.PrintWriter;
+import java.io.IOException;
 
 public class Data {
 
     public static void dataCollection() {
         String fileName = "numbers.csv";
 
-        writeToCSVFile(fileName);
+        //writeToCSVFile(fileName);
+        readCSVFile(fileName);
     }
 
     private static void writeToCSVFile(String fileName) {
@@ -27,6 +31,20 @@ public class Data {
     }
 
     private static void readCSVFile(String fileName) {
+        try (BufferedReader br = new BufferedReader(new FileReader(fileName))) {
 
+            String line = "";
+
+            while ( (line = br.readLine()) != null ) {
+                System.out.println(line);
+            }
+
+        } catch (FileNotFoundException e) {
+            System.out.println("Error reading file.");
+            e.printStackTrace();
+        } catch (IOException e) {
+            System.out.println("File could not be closed.");
+            e.printStackTrace();
+        }
     }
 }
