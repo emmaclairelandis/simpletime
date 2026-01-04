@@ -1,3 +1,5 @@
+// https://www.youtube.com/watch?v=0cATENiMsBE
+
 import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
@@ -57,7 +59,7 @@ public class Stopwatch implements ActionListener {
         frame.add(resetButton);
         frame.add(timeLabel);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(500,500);
+        frame.setSize(1280,720);
         frame.setLayout(null);
         frame.setVisible(true);
     }
