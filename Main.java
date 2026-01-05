@@ -1,23 +1,227 @@
-import javax.swing.*;
+// Some useful tutorials I used (ΦωΦ)
+// https://www.youtube.com/watch?v=wAEPokhj5Q4
+// https://www.youtube.com/watch?v=49bIIa6id08
+// https://www.youtube.com/watch?v=ScUJx4aWRi0
+
+import java.io.File;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
+
 
 public class Main {
+
+    // Declare some variables
+    static File dataFile = new File("data.json"); // The variable to refer to our little data.json file
+    static Scanner scanner = new Scanner(System.in); // When you want the user to press enter to continue
+    static int choice;
+    static boolean isRunning = true;
+
     public static void main(String[] args) {
-        //If you get an error saying you need X11 support or something, and you're on WSL, just boot through Powershell
-        //Stopwatch stopwatch = new Stopwatch();
-        Data.dataCollection();
-        SwingUtilities.invokeLater(() -> {
-            JFrame frame = new JFrame("SimpleTime");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setSize(1280,720);
+        while(isRunning) {
+            clearConsole();
+            System.out.println("Welcome to SimpleTime!");
+            System.out.println("\nSimpleTime is a simple and open-source\ntime tracking software made in Java.\n");
+            //System.out.println("\n");
+            //System.out.println("Timers currently running:");
+            //System.out.println(currentlyRunning);
+            //System.out.println("\n");
+            System.out.println("1. Start Timer");
+            System.out.println("2. Stop Timer");
+            System.out.println("3. Manage Timers");
+            System.out.println("4. Help");
+            System.out.println("5. Exit");
+            //System.out.println("\n");
 
-            frame.setJMenuBar(Menubar.createMenuBar());
+            System.out.print("\nEnter your choice (1-5): ");
+            choice = scanner.nextInt();
+            clearConsole();
 
-            frame.add(new Stopwatch());
+            switch(choice){
+                case 1 -> startTimer();
+                case 2 -> stopTimer();
+                case 3 -> manageTimer();
+                case 4 -> helpMenu();
+                case 5 -> isRunning = false;
+                default -> System.out.println("INVALID CHOICE");
+            }
 
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
-        
-        });
+
+            
+        }
+
+    }
+
+    public static void startTimer() {
+        clearConsole();
+        if (dataFile.exists()) {
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter("data.json"));
+                writer.write("Writing to a file.");
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("You currently have no timers.");
+            System.out.print("\nPlease press enter to return to the main menu...");
+
+            scanner.nextLine();
+        }
+        clearConsole();
+    }
+
+    public static void stopTimer() {
+        clearConsole();
+        if (dataFile.exists()) {
+            try {
+                BufferedWriter writer = new BufferedWriter(new FileWriter("data.json"));
+                writer.write("Writing to a file.");
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("You currently have no timers.");
+            System.out.print("\nPlease press enter to return to the main menu...");
+
+            scanner.nextLine();
+        }
+        clearConsole();
+    }
+
+    public static void manageTimer() {
+        scanner.nextLine();
+        clearConsole();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode root;
+
+        try {
+            
+            // If there is no data file, then let's make it. Not sure if this should go higher up or if it's fine in this little method...
+            // https://stackoverflow.com/questions/9620683/java-fileoutputstream-create-file-if-not-exists
+            dataFile.createNewFile(); // Won't do anything if the file already exists :3c
+
+            // Read JSON from file if it has content, otherwise create empty root
+            if (dataFile.length() > 0) {
+                root = (ObjectNode) mapper.readTree(dataFile);
+            } else {
+                root = mapper.createObjectNode();
+            }
+
+            // Check if "timers" exists and has entries
+            JsonNode timersNode = root.get("timers");
+            if (timersNode == null || timersNode.isEmpty()) {
+                System.out.println("You currently have no timers.");
+                System.out.println("Would you like to create one?");
+                System.out.println("\n");
+                System.out.println("1. Yes");
+                System.out.println("2. No\n");
+
+                choice = scanner.nextInt();
+                clearConsole();
+
+                switch(choice){
+                    case 1 -> newTimer();
+                }
+            } else {
+                // There are already timers
+                System.out.println("You currently have the following timers");
+
+                if (timersNode.isObject()) {
+                    ObjectNode timersObj = (ObjectNode) timersNode;
+                    timersObj.fieldNames().forEachRemaining(name -> System.out.println("- " + name));
+                }
+
+                scanner.nextLine();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
+
+    public static void newTimer() {
+        scanner.nextLine();
+        clearConsole();
+
+        if(scanner.hasNextLine()) scanner.nextLine();
+
+        System.out.print("What would you like to name your timer: ");
+        String timerName = scanner.nextLine();
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+
+            // Read existing JSON if file exists, otherwise create root
+            ObjectNode root;
+            if (dataFile.exists() && dataFile.length() > 0) {
+                root = (ObjectNode) mapper.readTree(dataFile);
+            } else {
+                root = mapper.createObjectNode();
+            }
+        
+            // Ensure "timers" node exists
+            ObjectNode timersNode;
+            if (root.has("timers")) {
+                timersNode = (ObjectNode) root.get("timers");
+            } else {
+                timersNode = mapper.createObjectNode();
+                root.set("timers", timersNode);
+            }
+        
+            // Create the new timer node
+            ObjectNode timerNode = mapper.createObjectNode();
+            ObjectNode sessionsNode = mapper.createObjectNode(); // empty sessions for now
+            timerNode.set("sessions", sessionsNode);
+        
+            // Add the timer to timers
+            timersNode.set(timerName, timerNode);
+        
+            // Write back to file
+            mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
+        
+            clearConsole();
+            System.out.println("Timer \"" + timerName + "\" created successfully!");
+            System.out.print("\nPlease press enter to return to the main menu...");
+            scanner.nextLine();
+        
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+        
+    public static void helpMenu() {
+        clearConsole();
+        System.out.println("There is no help for you! GAHAHAHAHAHAH!");
+        System.out.print("\nPlease press enter to return to the main menu...");
+        if(scanner.hasNextLine()) scanner.nextLine(); // If we don't put this then it just skips. I don't know why 
+        scanner.nextLine();
+        clearConsole();
+    }
+        
+
+    private static void clearConsole() {
+        try {
+            final String os = System.getProperty("os.name");
+
+            if (os.contains("Windows")) {
+                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
+            } else {
+                System.out.print("\033[H\033[2J");
+                System.out.flush();
+            }
+        } catch (Exception e) {
+            // Fallback: print newlines
+            for (int i = 0; i < 50; i++) System.out.println();
+        }
+    }
+
+}
 
