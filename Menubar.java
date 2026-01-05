@@ -1,10 +1,10 @@
 import javax.swing.*;
+import java.awt.Dimension;
 
-public class Menubar extends JFrame {
-    public Menubar() {
-        setTitle("SimpleTime");
-        setSize(600,400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+public class Menubar {
+    public static JMenuBar createMenuBar() {
+        //setTitle("SimpleTime");
+        //setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         JMenuBar menuBar = new JMenuBar();
 
@@ -23,8 +23,9 @@ public class Menubar extends JFrame {
         menuBar.add(viewMenu);
         menuBar.add(helpMenu);
 
-        setJMenuBar(menuBar);
+        //setJMenuBar(menuBar);
 
-        setVisible(true);
+        //setVisible(true);
+        return menuBar;
     }
 }

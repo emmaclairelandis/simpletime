@@ -4,9 +4,8 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class Stopwatch implements ActionListener {
+public class Stopwatch extends JPanel implements ActionListener {
 
-    JFrame frame = new JFrame();
     JButton startButton = new JButton("START");
     JButton resetButton = new JButton("RESET");
     JLabel timeLabel = new JLabel();
@@ -38,8 +37,15 @@ public class Stopwatch implements ActionListener {
 
     Stopwatch(){
 
+        Dimension size = this.getSize();
+
         timeLabel.setText(hourString+":"+minuteString+":"+secondString);
-        timeLabel.setBounds(100,100,200,100);
+        timeLabel.setBounds(
+            ((size.width)/2),
+            ((size.height)/2),
+            200,
+            100
+        );
         timeLabel.setFont(new Font("Verdana",Font.PLAIN,35));
         timeLabel.setBorder(BorderFactory.createBevelBorder(1));
         timeLabel.setOpaque(true);
@@ -55,13 +61,9 @@ public class Stopwatch implements ActionListener {
         resetButton.setFocusable(false);
         resetButton.addActionListener(this);
 
-        frame.add(startButton);
-        frame.add(resetButton);
-        frame.add(timeLabel);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(1280,720);
-        frame.setLayout(null);
-        frame.setVisible(true);
+        this.add(startButton);
+        this.add(resetButton);
+        this.add(timeLabel);
     }
 
     @Override
