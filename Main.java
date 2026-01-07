@@ -4,8 +4,6 @@
 // https://www.youtube.com/watch?v=ScUJx4aWRi0
 
 import java.io.File;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,7 +45,6 @@ public class Main {
                 case 3 -> manageTimer();
                 case 4 -> helpMenu();
                 case 5 -> isRunning = false;
-                default -> System.out.println("INVALID CHOICE");
             }
 
 
@@ -59,18 +56,13 @@ public class Main {
     public static void startTimer() {
         clearConsole();
         if (dataFile.exists()) {
-            try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter("data.json"));
-                writer.write("Writing to a file.");
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            return;
         } else {
             System.out.println("You currently have no timers.");
             System.out.print("\nPlease press enter to return to the main menu...");
 
             scanner.nextLine();
+            if(scanner.hasNextLine()) scanner.nextLine();
         }
         clearConsole();
     }
@@ -78,24 +70,18 @@ public class Main {
     public static void stopTimer() {
         clearConsole();
         if (dataFile.exists()) {
-            try {
-                BufferedWriter writer = new BufferedWriter(new FileWriter("data.json"));
-                writer.write("Writing to a file.");
-                writer.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            return;
         } else {
             System.out.println("You currently have no timers.");
             System.out.print("\nPlease press enter to return to the main menu...");
 
             scanner.nextLine();
+            if(scanner.hasNextLine()) scanner.nextLine();
         }
         clearConsole();
     }
 
     public static void manageTimer() {
-        scanner.nextLine();
         clearConsole();
 
         ObjectMapper mapper = new ObjectMapper();
@@ -124,21 +110,27 @@ public class Main {
                 System.out.println("2. No\n");
 
                 choice = scanner.nextInt();
-                clearConsole();
-
                 switch(choice){
                     case 1 -> newTimer();
                 }
             } else {
                 // There are already timers
-                System.out.println("You currently have the following timers");
+                System.out.println("You currently have the following timers:\n");
 
                 if (timersNode.isObject()) {
                     ObjectNode timersObj = (ObjectNode) timersNode;
                     timersObj.fieldNames().forEachRemaining(name -> System.out.println("- " + name));
                 }
 
-                scanner.nextLine();
+                System.out.println("\n1. Create Timer");
+                System.out.println("2. Delete Timer");
+                System.out.println("3. Back\n");
+
+                choice = scanner.nextInt();
+                switch(choice){
+                    case 1 -> newTimer();
+                    case 2 -> deleteTimer();
+                }
             }
 
         } catch (IOException e) {
@@ -146,8 +138,36 @@ public class Main {
         }
     }
 
+    public static void deleteTimer() {
+        clearConsole();
+
+        if(scanner.hasNextLine()) scanner.nextLine();
+
+        System.out.print("Which timer would you like to delete: ");
+        String timerName = scanner.nextLine();
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            JsonNode root = mapper.readTree(new File("data.json"));
+
+            ObjectNode rootObj = (ObjectNode) root;
+            ObjectNode timersNode = (ObjectNode) rootObj.get("timers");
+
+            timersNode.remove(timerName);
+
+            mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
+            
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("\nTimer has successfully been deleted.");
+        if(scanner.hasNextLine()) scanner.nextLine();
+        clearConsole();
+    }
+
     public static void newTimer() {
-        scanner.nextLine();
         clearConsole();
 
         if(scanner.hasNextLine()) scanner.nextLine();
