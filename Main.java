@@ -6,6 +6,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.Scanner;
+import java.util.Iterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -56,7 +57,86 @@ public class Main {
     public static void startTimer() {
         clearConsole();
         if (dataFile.exists()) {
-            return;
+            clearConsole();
+
+            if(scanner.hasNextLine()) scanner.nextLine();
+
+            System.out.println("You have the following timers: \n");
+
+            /*
+            if (timersNode.isObject()) {
+                ObjectNode timersObj = (ObjectNode) timersNode;
+                timersObj.fieldNames().forEachRemaining(name -> System.out.println("- " + name));
+            }
+            */
+
+            System.out.print("\nWhich timer would you like to start: ");
+            String timerName = scanner.nextLine();
+
+            ObjectMapper mapper = new ObjectMapper();
+
+            try {
+                ObjectNode root = (ObjectNode) mapper.readTree(dataFile);
+
+                ObjectNode timersNode = (ObjectNode) root.get("timers");
+
+                // I don't know if this is required for the code to run 
+                if (timersNode == null) {
+                    timersNode = mapper.createObjectNode();
+                    root.set("timers", timersNode);
+                }
+
+                // I don't know why we have this many if-statements but things break if I don't put them?????
+                if (timersNode.isObject()) {
+                    ObjectNode timersObj = (ObjectNode) timersNode;
+                    timersObj.fieldNames().forEachRemaining(name -> System.out.println("- " + name));
+                }
+
+                ObjectNode timerNode = (ObjectNode) timersNode.get(timerName);
+                if (timerNode == null) {
+                    clearConsole();
+                    System.out.println("You currently have no timer with that name.");
+                    System.out.print("\nPlease press enter to return to the main menu...");
+                    if(scanner.hasNextLine()) scanner.nextLine();
+                    return;
+                }
+
+                ObjectNode sessionsNode = (ObjectNode) timerNode.get("sessions");
+                if (sessionsNode == null) {
+                    sessionsNode = mapper.createObjectNode();
+                    timerNode.set("sessions", sessionsNode);
+                }
+
+                // Which session are we on
+                int nextSession = 1;
+                Iterator<String> fieldNames = sessionsNode.fieldNames();
+                while (fieldNames.hasNext()) {
+                    String name = fieldNames.next();
+                    try {
+                        int n = Integer.parseInt(name);
+                        if (n >= nextSession) {
+                            nextSession = n + 1;
+                        }
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // Create a new session based on which number we're on
+                ObjectNode newSession = mapper.createObjectNode();
+                long unixTime = System.currentTimeMillis() / 1000;
+                newSession.put("start", unixTime);
+
+                sessionsNode.set(String.valueOf(nextSession), newSession);
+
+                // Write it out :3c
+                mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
+
+
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
         } else {
             System.out.println("You currently have no timers.");
             System.out.print("\nPlease press enter to return to the main menu...");
@@ -210,7 +290,7 @@ public class Main {
             clearConsole();
             System.out.println("Timer \"" + timerName + "\" created successfully!");
             System.out.print("\nPlease press enter to return to the main menu...");
-            scanner.nextLine();
+            if(scanner.hasNextLine()) scanner.nextLine();
         
         } catch (IOException e) {
             e.printStackTrace();
