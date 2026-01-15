@@ -1,7 +1,12 @@
+# Java stuff
 *.jar
 *.class
-*.iml
 
-*.csv
+
+# Data stuff
 *.json
 
+# Directories
+tmp/
+bin/
+lib/
