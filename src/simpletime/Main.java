@@ -54,7 +54,8 @@ public class Main {
         
     public static void helpMenu() {
         ConsoleUtils.clearConsole();
-        System.out.println("There is no help for you! GAHAHAHAHAHAH!");
+        System.out.println("SimpleTime is a FOSS app created in January 2026 by Emma Claire Landis.");
+        System.out.println("Source code can be found here: https://github.com/emmaclairelandis/simpletime");
         System.out.print("\nPlease press enter to return to the main menu...");
         if(scanner.hasNextLine()) scanner.nextLine(); // If we don't put this then it just skips. I don't know why 
         scanner.nextLine();

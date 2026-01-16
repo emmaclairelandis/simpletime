@@ -17,110 +17,157 @@ public class TimerManager {
 
     public static void startTimer() {
         ConsoleUtils.clearConsole();
-        if (dataFile.exists()) {
-            ConsoleUtils.clearConsole();
-
-            if(scanner.hasNextLine()) scanner.nextLine();
-
-            System.out.println("You have the following timers: \n");
-
-            /*
-            if (timersNode.isObject()) {
-                ObjectNode timersObj = (ObjectNode) timersNode;
-                timersObj.fieldNames().forEachRemaining(name -> System.out.println("- " + name));
+        ObjectMapper mapper = new ObjectMapper();
+    
+        try {
+            // Read root JSON
+            ObjectNode root = (ObjectNode) mapper.readTree(dataFile);
+    
+            // Get timers
+            ObjectNode timersNode = (ObjectNode) root.get("timers");
+            if (timersNode == null) {
+                if(scanner.hasNextLine()) scanner.nextLine();
+                System.out.println("You currently have no timers.");
+                return;
             }
-            */
-
-            System.out.print("\nWhich timer would you like to start: ");
+    
+            // Ask user which timer
+            //if(scanner.hasNextLine()) scanner.nextLine();
+            System.out.print("Which timer would you like to start: ");
             String timerName = scanner.nextLine();
-
-            ObjectMapper mapper = new ObjectMapper();
-
-            try {
-                ObjectNode root = (ObjectNode) mapper.readTree(dataFile);
-
-                ObjectNode timersNode = (ObjectNode) root.get("timers");
-
-                // I don't know if this is required for the code to run 
-                if (timersNode == null) {
-                    timersNode = mapper.createObjectNode();
-                    root.set("timers", timersNode);
-                }
-
-                // I don't know why we have this many if-statements but things break if I don't put them?????
-                if (timersNode.isObject()) {
-                    ObjectNode timersObj = (ObjectNode) timersNode;
-                    timersObj.fieldNames().forEachRemaining(name -> System.out.println("- " + name));
-                }
-
-                ObjectNode timerNode = (ObjectNode) timersNode.get(timerName);
-                if (timerNode == null) {
-                    ConsoleUtils.clearConsole();
-                    System.out.println("You currently have no timer with that name.");
-                    System.out.print("\nPlease press enter to return to the main menu...");
-                    if(scanner.hasNextLine()) scanner.nextLine();
-                    return;
-                }
-
-                ObjectNode sessionsNode = (ObjectNode) timerNode.get("sessions");
-                if (sessionsNode == null) {
-                    sessionsNode = mapper.createObjectNode();
-                    timerNode.set("sessions", sessionsNode);
-                }
-
-                // Which session are we on
-                int nextSession = 1;
-                Iterator<String> fieldNames = sessionsNode.fieldNames();
-                while (fieldNames.hasNext()) {
-                    String name = fieldNames.next();
-                    try {
-                        int n = Integer.parseInt(name);
-                        if (n >= nextSession) {
-                            nextSession = n + 1;
-                        }
-                    } catch (NumberFormatException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // Create a new session based on which number we're on
-                ObjectNode newSession = mapper.createObjectNode();
-                long unixTime = System.currentTimeMillis() / 1000;
-                newSession.put("start", unixTime);
-
-                sessionsNode.set(String.valueOf(nextSession), newSession);
-
-                // Write it out :3c
-                mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
+    
+            ObjectNode timerNode = (ObjectNode) timersNode.get(timerName);
+            if (timerNode == null) {
+                ConsoleUtils.clearConsole();
+                System.out.println("You currently have no timer with that name.");
+                System.out.print("Please press enter to return to the main menu...");
+                if(scanner.hasNextLine()) scanner.nextLine();
+                return;
             }
-
-        } else {
-            System.out.println("You currently have no timers.");
-            System.out.print("\nPlease press enter to return to the main menu...");
-
-            scanner.nextLine();
+    
+            ObjectNode sessionsNode = (ObjectNode) timerNode.get("sessions");
+            if (sessionsNode == null) {
+                sessionsNode = mapper.createObjectNode();
+                timerNode.set("sessions", sessionsNode);
+            }
+    
+            // Check if most recent session is running
+            ObjectNode lastSession = getMostRecentSession(sessionsNode);
+            if (lastSession != null && lastSession.has("start") && !lastSession.has("stop")) {
+                System.out.println("Timer is already running!");
+                System.out.print("Please press enter to return to the main menu...");
+                if(scanner.hasNextLine()) scanner.nextLine();
+                return;
+            }
+    
+            // Determine next session number
+            int nextSession = 1;
+            Iterator<String> fieldNames = sessionsNode.fieldNames();
+            while (fieldNames.hasNext()) {
+                String name = fieldNames.next();
+                try {
+                    int n = Integer.parseInt(name);
+                    if (n >= nextSession) nextSession = n + 1;
+                } catch (NumberFormatException e) { }
+            }
+    
+            // Create new session
+            ObjectNode newSession = mapper.createObjectNode();
+            long unixTime = System.currentTimeMillis() / 1000;
+            newSession.put("start", unixTime);
+            sessionsNode.set(String.valueOf(nextSession), newSession);
+    
+            // Write to file
+            mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
+            ConsoleUtils.clearConsole();
+            System.out.println("Timer started successfully.");
+            System.out.print("Please press enter to return to the main menu...");
             if(scanner.hasNextLine()) scanner.nextLine();
+    
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        ConsoleUtils.clearConsole();
     }
-
+    
     public static void stopTimer() {
         ConsoleUtils.clearConsole();
-        if (dataFile.exists()) {
-            return;
-        } else {
+        if (!dataFile.exists()) {
             System.out.println("You currently have no timers.");
-            System.out.print("\nPlease press enter to return to the main menu...");
-
+            System.out.print("\nPress enter to return to the main menu...");
             scanner.nextLine();
-            if(scanner.hasNextLine()) scanner.nextLine();
+            return;
         }
-        ConsoleUtils.clearConsole();
-    }
+    
+        ObjectMapper mapper = new ObjectMapper();
+    
+        try {
+            // Read root JSON
+            ObjectNode root = (ObjectNode) mapper.readTree(dataFile);
+    
+            // Get timers
+            ObjectNode timersNode = (ObjectNode) root.get("timers");
+            if (timersNode == null) {
+                System.out.println("You currently have no timers.");
+                return;
+            }
+    
+            // Ask user which timer to stop
+            System.out.print("Which timer would you like to stop: ");
+            String timerName = scanner.nextLine();
+    
+            ObjectNode timerNode = (ObjectNode) timersNode.get(timerName);
+            if (timerNode == null) {
+                System.out.println("No timer with that name exists.");
+                if(scanner.hasNextLine()) scanner.nextLine();
+                return;
+            }
+    
+            ObjectNode sessionsNode = (ObjectNode) timerNode.get("sessions");
+            if (sessionsNode == null || sessionsNode.size() == 0) {
+                System.out.println("Timer has no sessions.");
+                if(scanner.hasNextLine()) scanner.nextLine();
+                return;
+            }
+    
+            // Check if last session is running
+            ObjectNode lastSession = getMostRecentSession(sessionsNode);
+            if (lastSession.has("start") && !lastSession.has("stop")) {
+                long unixTime = System.currentTimeMillis() / 1000;
+                lastSession.put("stop", unixTime);
+    
+                // Write back to file
+                mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
+                System.out.println("Timer stopped successfully.");
+                if(scanner.hasNextLine()) scanner.nextLine();
+            } else {
+                System.out.println("Timer is not currently running!");
+                if(scanner.hasNextLine()) scanner.nextLine();
+            }
+    
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }    
+
+    // Used when trying to figure out whether a timer is running or not 
+    private static ObjectNode getMostRecentSession(ObjectNode sessionsNode) {
+        int max = -1;
+        ObjectNode lastSession = null;
+        Iterator<String> fieldNames = sessionsNode.fieldNames();
+        while (fieldNames.hasNext()) {
+            String name = fieldNames.next();
+            try {
+                int n = Integer.parseInt(name);
+                if (n > max) {
+                    max = n;
+                    lastSession = (ObjectNode) sessionsNode.get(name);
+                }
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        return lastSession;
+    }    
 
     public static void manageTimer() {
         ConsoleUtils.clearConsole();
