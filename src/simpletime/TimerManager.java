@@ -1,8 +1,4 @@
-//package src;
-// Some useful tutorials I used (ΦωΦ)
-// https://www.youtube.com/watch?v=wAEPokhj5Q4
-// https://www.youtube.com/watch?v=49bIIa6id08
-// https://www.youtube.com/watch?v=ScUJx4aWRi0
+package simpletime;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,53 +8,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.JsonNode; 
 
+public class TimerManager {
 
-public class Main {
-
-    // Declare some variables
-    static File dataFile = new File("data.json"); // The variable to refer to our little data.json file
+    // These variables are also declared in Main.java, so I'm not sure if it's necessary or good practice to declare them again or not
+    static File dataFile = new File("data/data.json"); // The variable to refer to our little data.json file
     static Scanner scanner = new Scanner(System.in); // When you want the user to press enter to continue
     static int choice;
-    static boolean isRunning = true;
-
-    public static void main(String[] args) {
-        while(isRunning) {
-            clearConsole();
-            System.out.println("Welcome to SimpleTime!");
-            System.out.println("\nSimpleTime is a simple and open-source\ntime tracking software made in Java.\n");
-            //System.out.println("\n");
-            //System.out.println("Timers currently running:");
-            //System.out.println(currentlyRunning);
-            //System.out.println("\n");
-            System.out.println("1. Start Timer");
-            System.out.println("2. Stop Timer");
-            System.out.println("3. Manage Timers");
-            System.out.println("4. Help");
-            System.out.println("5. Exit");
-            //System.out.println("\n");
-
-            System.out.print("\nEnter your choice (1-5): ");
-            choice = scanner.nextInt();
-            clearConsole();
-
-            switch(choice){
-                case 1 -> startTimer();
-                case 2 -> stopTimer();
-                case 3 -> manageTimer();
-                case 4 -> helpMenu();
-                case 5 -> isRunning = false;
-            }
-
-
-            
-        }
-
-    }
 
     public static void startTimer() {
-        clearConsole();
+        ConsoleUtils.clearConsole();
         if (dataFile.exists()) {
-            clearConsole();
+            ConsoleUtils.clearConsole();
 
             if(scanner.hasNextLine()) scanner.nextLine();
 
@@ -95,7 +55,7 @@ public class Main {
 
                 ObjectNode timerNode = (ObjectNode) timersNode.get(timerName);
                 if (timerNode == null) {
-                    clearConsole();
+                    ConsoleUtils.clearConsole();
                     System.out.println("You currently have no timer with that name.");
                     System.out.print("\nPlease press enter to return to the main menu...");
                     if(scanner.hasNextLine()) scanner.nextLine();
@@ -145,11 +105,11 @@ public class Main {
             scanner.nextLine();
             if(scanner.hasNextLine()) scanner.nextLine();
         }
-        clearConsole();
+        ConsoleUtils.clearConsole();
     }
 
     public static void stopTimer() {
-        clearConsole();
+        ConsoleUtils.clearConsole();
         if (dataFile.exists()) {
             return;
         } else {
@@ -159,11 +119,11 @@ public class Main {
             scanner.nextLine();
             if(scanner.hasNextLine()) scanner.nextLine();
         }
-        clearConsole();
+        ConsoleUtils.clearConsole();
     }
 
     public static void manageTimer() {
-        clearConsole();
+        ConsoleUtils.clearConsole();
 
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode root;
@@ -220,7 +180,7 @@ public class Main {
     }
 
     public static void deleteTimer() {
-        clearConsole();
+        ConsoleUtils.clearConsole();
 
         if(scanner.hasNextLine()) scanner.nextLine();
 
@@ -230,7 +190,7 @@ public class Main {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            JsonNode root = mapper.readTree(new File("data.json"));
+            JsonNode root = mapper.readTree(new File("data/data.json"));
 
             ObjectNode rootObj = (ObjectNode) root;
             ObjectNode timersNode = (ObjectNode) rootObj.get("timers");
@@ -245,11 +205,11 @@ public class Main {
 
         System.out.println("\nTimer has successfully been deleted.");
         if(scanner.hasNextLine()) scanner.nextLine();
-        clearConsole();
+        ConsoleUtils.clearConsole();
     }
 
     public static void newTimer() {
-        clearConsole();
+        ConsoleUtils.clearConsole();
 
         if(scanner.hasNextLine()) scanner.nextLine();
 
@@ -288,7 +248,7 @@ public class Main {
             // Write back to file
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
         
-            clearConsole();
+            ConsoleUtils.clearConsole();
             System.out.println("Timer \"" + timerName + "\" created successfully!");
             System.out.print("\nPlease press enter to return to the main menu...");
             if(scanner.hasNextLine()) scanner.nextLine();
@@ -297,31 +257,4 @@ public class Main {
             e.printStackTrace();
         }
     }
-        
-    public static void helpMenu() {
-        clearConsole();
-        System.out.println("There is no help for you! GAHAHAHAHAHAH!");
-        System.out.print("\nPlease press enter to return to the main menu...");
-        if(scanner.hasNextLine()) scanner.nextLine(); // If we don't put this then it just skips. I don't know why 
-        scanner.nextLine();
-        clearConsole();
-    }
-        
-
-    private static void clearConsole() {
-        try {
-            final String os = System.getProperty("os.name");
-
-            if (os.contains("Windows")) {
-                new ProcessBuilder("cmd", "/c", "cls").inheritIO().start().waitFor();
-            } else {
-                System.out.print("\033[H\033[2J");
-                System.out.flush();
-            }
-        } catch (Exception e) {
-            // Fallback: print newlines
-            for (int i = 0; i < 50; i++) System.out.println();
-        }
-    }
-
 }

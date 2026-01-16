@@ -4,5 +4,6 @@ The following libraries are needed for this project:
 - jackson-databind-2.15.2
 
 How to compile:
-- javac -cp "lib/*" -d bin src/*.java
+- javac -cp "lib/\*" -d bin src/simpletime/\*.java
 - ./compile.sh
+
