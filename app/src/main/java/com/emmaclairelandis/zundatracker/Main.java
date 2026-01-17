@@ -1,18 +1,12 @@
-package simpletime;
+/*
+package zundatracker;
 
 // Some useful tutorials I used (ΦωΦ)
 // https://www.youtube.com/watch?v=wAEPokhj5Q4
 // https://www.youtube.com/watch?v=49bIIa6id08
 // https://www.youtube.com/watch?v=ScUJx4aWRi0
 
-// Not sure if we need some of these packages in main specifically 
-import java.io.IOException;
 import java.util.Scanner;
-import java.util.Iterator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.JsonNode; 
-
 
 public class Main {
 
@@ -25,8 +19,8 @@ public class Main {
     public static void main(String[] args) {
         while(isRunning) {
             ConsoleUtils.clearConsole();
-            System.out.println("Welcome to SimpleTime!");
-            System.out.println("\nSimpleTime is a simple and open-source\ntime tracking software made in Java.\n");
+            System.out.println("Welcome to ZundaTracker!");
+            System.out.println("\nZundaTracker is a simple and open-source\ntime tracking software made in Java.\n");
             //System.out.println("\n");
             //System.out.println("Timers currently running:");
             //System.out.println(currentlyRunning);
@@ -54,8 +48,8 @@ public class Main {
         
     public static void helpMenu() {
         ConsoleUtils.clearConsole();
-        System.out.println("SimpleTime is a FOSS app created in January 2026 by Emma Claire Landis.");
-        System.out.println("Source code can be found here: https://github.com/emmaclairelandis/simpletime");
+        System.out.println("ZundaTracker is a FOSS app created in January 2026 by Emma Claire Landis.");
+        System.out.println("Source code can be found here: https://github.com/zundatracker/zundatracker");
         System.out.print("\nPlease press enter to return to the main menu...");
         if(scanner.hasNextLine()) scanner.nextLine(); // If we don't put this then it just skips. I don't know why 
         scanner.nextLine();
@@ -63,3 +57,4 @@ public class Main {
     }
         
 }
+*/

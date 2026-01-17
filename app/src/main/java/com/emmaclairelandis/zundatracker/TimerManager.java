@@ -1,4 +1,5 @@
-package simpletime;
+/*
+package zundatracker;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,8 +27,11 @@ public class TimerManager {
             // Get timers
             ObjectNode timersNode = (ObjectNode) root.get("timers");
             if (timersNode == null) {
-                if(scanner.hasNextLine()) scanner.nextLine();
+                //if(scanner.hasNextLine()) scanner.nextLine();
                 System.out.println("You currently have no timers.");
+                System.out.print("Please press enter to return to the main menu...");
+                scanner.nextLine();
+                scanner.nextLine();
                 return;
             }
     
@@ -41,7 +45,7 @@ public class TimerManager {
                 ConsoleUtils.clearConsole();
                 System.out.println("You currently have no timer with that name.");
                 System.out.print("Please press enter to return to the main menu...");
-                if(scanner.hasNextLine()) scanner.nextLine();
+                scanner.nextLine();
                 return;
             }
     
@@ -56,7 +60,7 @@ public class TimerManager {
             if (lastSession != null && lastSession.has("start") && !lastSession.has("stop")) {
                 System.out.println("Timer is already running!");
                 System.out.print("Please press enter to return to the main menu...");
-                if(scanner.hasNextLine()) scanner.nextLine();
+                scanner.nextLine();
                 return;
             }
     
@@ -82,7 +86,7 @@ public class TimerManager {
             ConsoleUtils.clearConsole();
             System.out.println("Timer started successfully.");
             System.out.print("Please press enter to return to the main menu...");
-            if(scanner.hasNextLine()) scanner.nextLine();
+            scanner.nextLine();
     
         } catch (IOException e) {
             e.printStackTrace();
@@ -106,8 +110,10 @@ public class TimerManager {
     
             // Get timers
             ObjectNode timersNode = (ObjectNode) root.get("timers");
-            if (timersNode == null) {
+            if (timersNode == null || !root.isObject()) {
                 System.out.println("You currently have no timers.");
+                System.out.print("Press enter to return to the main menu...");
+                scanner.nextLine();
                 return;
             }
     
@@ -118,14 +124,16 @@ public class TimerManager {
             ObjectNode timerNode = (ObjectNode) timersNode.get(timerName);
             if (timerNode == null) {
                 System.out.println("No timer with that name exists.");
-                if(scanner.hasNextLine()) scanner.nextLine();
+                System.out.print("Press enter to return to the main menu...");
+                scanner.nextLine();
                 return;
             }
     
             ObjectNode sessionsNode = (ObjectNode) timerNode.get("sessions");
             if (sessionsNode == null || sessionsNode.size() == 0) {
                 System.out.println("Timer has no sessions.");
-                if(scanner.hasNextLine()) scanner.nextLine();
+                System.out.print("Press enter to return to the main menu...");
+                scanner.nextLine();
                 return;
             }
     
@@ -138,10 +146,12 @@ public class TimerManager {
                 // Write back to file
                 mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
                 System.out.println("Timer stopped successfully.");
-                if(scanner.hasNextLine()) scanner.nextLine();
+                System.out.print("Press enter to return to the main menu...");
+                scanner.nextLine();
             } else {
                 System.out.println("Timer is not currently running!");
-                if(scanner.hasNextLine()) scanner.nextLine();
+                System.out.print("Press enter to return to the main menu...");
+                scanner.nextLine();
             }
     
         } catch (IOException e) {
@@ -179,6 +189,14 @@ public class TimerManager {
             
             // If there is no data file, then let's make it. Not sure if this should go higher up or if it's fine in this little method...
             // https://stackoverflow.com/questions/9620683/java-fileoutputstream-create-file-if-not-exists
+
+            
+            File parent = dataFile.getParentFile();
+            if (parent != null && !parent.exists()) {
+                parent.mkdirs();
+            }
+            
+
             dataFile.createNewFile(); // Won't do anything if the file already exists :3c
 
             // Read JSON from file if it has content, otherwise create empty root
@@ -188,9 +206,11 @@ public class TimerManager {
                 root = mapper.createObjectNode();
             }
 
+            
             // Check if "timers" exists and has entries
             JsonNode timersNode = root.get("timers");
             if (timersNode == null || timersNode.isEmpty()) {
+                //if(scanner.hasNextLine()) scanner.nextLine();
                 System.out.println("You currently have no timers.");
                 System.out.println("Would you like to create one?");
                 System.out.println("\n");
@@ -305,3 +325,4 @@ public class TimerManager {
         }
     }
 }
+*/

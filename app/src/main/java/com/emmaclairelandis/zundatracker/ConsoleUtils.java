@@ -1,6 +1,5 @@
-package simpletime;
-
-import java.io.IOException;
+/*
+package zundatracker;
 
 public class ConsoleUtils {
     public static void clearConsole() {
@@ -19,3 +18,4 @@ public class ConsoleUtils {
         }
     }
 }
+*/
