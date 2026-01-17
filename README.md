@@ -1,6 +1,6 @@
-# SimpleTime
+# 🫛 ZundaTracker 🫛
 
-SimpleTime is a simple and open-source time tracking software made in Java for CLI. 
+ZundaTracker is a simple and open-source time tracking software made in Java for CLI. 
 
 ## Installation
 
@@ -11,18 +11,19 @@ The following libraries are needed for this project:
 
 How to download:
 - `cd your/directory/goes/here`
-- `git clone git@github.com:emmaclairelandis/simpletime.git`
+- `git clone git@github.com:zundatracker/zundatracker.git`
 
 How to compile:
-- `javac -cp "lib/*" -d bin src/simpletime/*.java`
+- Change output directory in `compile.sh` to desired location.
 - `./compile.sh`
+- `java -jar zundatracker.jar` to run.
 
 Your directory tree should generally look like the following:
 ```
 ├── LICENSE
 ├── README.md
 ├── bin
-│   └── simpletime
+│   └── zundatracker
 │       ├── ConsoleUtils.class
 │       ├── Main.class
 │       └── TimerManager.class
@@ -35,7 +36,7 @@ Your directory tree should generally look like the following:
 │   └── jackson-databind-2.15.2.jar
 ├── manifest.txt
 └── src
-    └── simpletime
+    └── zundatracker
         ├── ConsoleUtils.java
         ├── Main.java
         └── TimerManager.java

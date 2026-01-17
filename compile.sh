@@ -1,14 +1,16 @@
+javac -cp "lib/*" -d bin src/zundatracker/*.java
+
 rm -rf tmp
 mkdir tmp
 cd tmp
 
 # unpack all dependency jars
-for j in ~/Repos/simpletime/lib/*.jar; do
+for j in /mnt/d/Repos/zundatracker/lib/*.jar; do
     jar xf "$j"
 done
 
-# copy your compiled classes
-cp -r ~/Repos/simpletime/bin/* .
+# copy compiled classes
+cp -r /mnt/d/Repos/zundatracker/bin/* .
 
 # create the fat (🤤) jar
-jar cfm ~/Repos/simpletime/simpletime.jar ~/Repos/simpletime/manifest.txt *
+jar cfm /mnt/d/Repos/zundatracker/zundatracker.jar /mnt/d/Repos/zundatracker/manifest.txt *

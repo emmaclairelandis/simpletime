@@ -4,10 +4,10 @@
 
 
 # Data stuff
-*.json
+# *.json
 
 # Directories
 tmp/
 bin/
 lib/
-data/
+# data/
