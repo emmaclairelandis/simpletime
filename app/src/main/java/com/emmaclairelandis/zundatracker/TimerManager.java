@@ -1,9 +1,8 @@
 /*
-package zundatracker;
+package com.emmaclairelandis.zundatracker;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
 import java.util.Iterator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -11,44 +10,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class TimerManager {
 
-    // These variables are also declared in Main.java, so I'm not sure if it's necessary or good practice to declare them again or not
-    static File dataFile = new File("data/data.json"); // The variable to refer to our little data.json file
-    static Scanner scanner = new Scanner(System.in); // When you want the user to press enter to continue
-    static int choice;
+    static File dataFile = new File("data.json"); // The variable to refer to our little data.json file
 
     public static void startTimer() {
-        ConsoleUtils.clearConsole();
         ObjectMapper mapper = new ObjectMapper();
     
-        try {
-            // Read root JSON
-            ObjectNode root = (ObjectNode) mapper.readTree(dataFile);
-    
-            // Get timers
-            ObjectNode timersNode = (ObjectNode) root.get("timers");
-            if (timersNode == null) {
-                //if(scanner.hasNextLine()) scanner.nextLine();
-                System.out.println("You currently have no timers.");
-                System.out.print("Please press enter to return to the main menu...");
-                scanner.nextLine();
-                scanner.nextLine();
-                return;
-            }
-    
-            // Ask user which timer
-            //if(scanner.hasNextLine()) scanner.nextLine();
-            System.out.print("Which timer would you like to start: ");
+            // Which timer do you want to start
             String timerName = scanner.nextLine();
-    
-            ObjectNode timerNode = (ObjectNode) timersNode.get(timerName);
-            if (timerNode == null) {
-                ConsoleUtils.clearConsole();
-                System.out.println("You currently have no timer with that name.");
-                System.out.print("Please press enter to return to the main menu...");
-                scanner.nextLine();
-                return;
-            }
-    
+
             ObjectNode sessionsNode = (ObjectNode) timerNode.get("sessions");
             if (sessionsNode == null) {
                 sessionsNode = mapper.createObjectNode();
@@ -83,7 +52,6 @@ public class TimerManager {
     
             // Write to file
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
-            ConsoleUtils.clearConsole();
             System.out.println("Timer started successfully.");
             System.out.print("Please press enter to return to the main menu...");
             scanner.nextLine();
@@ -94,7 +62,6 @@ public class TimerManager {
     }
     
     public static void stopTimer() {
-        ConsoleUtils.clearConsole();
         if (!dataFile.exists()) {
             System.out.println("You currently have no timers.");
             System.out.print("\nPress enter to return to the main menu...");
@@ -179,75 +146,7 @@ public class TimerManager {
         return lastSession;
     }    
 
-    public static void manageTimer() {
-        ConsoleUtils.clearConsole();
-
-        ObjectMapper mapper = new ObjectMapper();
-        ObjectNode root;
-
-        try {
-            
-            // If there is no data file, then let's make it. Not sure if this should go higher up or if it's fine in this little method...
-            // https://stackoverflow.com/questions/9620683/java-fileoutputstream-create-file-if-not-exists
-
-            
-            File parent = dataFile.getParentFile();
-            if (parent != null && !parent.exists()) {
-                parent.mkdirs();
-            }
-            
-
-            dataFile.createNewFile(); // Won't do anything if the file already exists :3c
-
-            // Read JSON from file if it has content, otherwise create empty root
-            if (dataFile.length() > 0) {
-                root = (ObjectNode) mapper.readTree(dataFile);
-            } else {
-                root = mapper.createObjectNode();
-            }
-
-            
-            // Check if "timers" exists and has entries
-            JsonNode timersNode = root.get("timers");
-            if (timersNode == null || timersNode.isEmpty()) {
-                //if(scanner.hasNextLine()) scanner.nextLine();
-                System.out.println("You currently have no timers.");
-                System.out.println("Would you like to create one?");
-                System.out.println("\n");
-                System.out.println("1. Yes");
-                System.out.println("2. No\n");
-
-                choice = scanner.nextInt();
-                switch(choice){
-                    case 1 -> newTimer();
-                }
-            } else {
-                // There are already timers
-                System.out.println("You currently have the following timers:\n");
-
-                if (timersNode.isObject()) {
-                    ObjectNode timersObj = (ObjectNode) timersNode;
-                    timersObj.fieldNames().forEachRemaining(name -> System.out.println("- " + name));
-                }
-
-                System.out.println("\n1. Create Timer");
-                System.out.println("2. Delete Timer");
-                System.out.println("3. Back\n");
-
-                choice = scanner.nextInt();
-                switch(choice){
-                    case 1 -> newTimer();
-                    case 2 -> deleteTimer();
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
     public static void deleteTimer() {
-        ConsoleUtils.clearConsole();
 
         if(scanner.hasNextLine()) scanner.nextLine();
 
@@ -272,11 +171,9 @@ public class TimerManager {
 
         System.out.println("\nTimer has successfully been deleted.");
         if(scanner.hasNextLine()) scanner.nextLine();
-        ConsoleUtils.clearConsole();
     }
 
     public static void newTimer() {
-        ConsoleUtils.clearConsole();
 
         if(scanner.hasNextLine()) scanner.nextLine();
 
@@ -314,8 +211,7 @@ public class TimerManager {
         
             // Write back to file
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
-        
-            ConsoleUtils.clearConsole();
+
             System.out.println("Timer \"" + timerName + "\" created successfully!");
             System.out.print("\nPlease press enter to return to the main menu...");
             if(scanner.hasNextLine()) scanner.nextLine();
@@ -325,4 +221,4 @@ public class TimerManager {
         }
     }
 }
-*/
+ */

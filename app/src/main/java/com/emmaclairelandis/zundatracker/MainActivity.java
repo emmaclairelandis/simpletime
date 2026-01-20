@@ -2,14 +2,17 @@ package com.emmaclairelandis.zundatracker;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.Toast;
+import android.graphics.Color;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,12 +20,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.JsonNode;
+
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int COLUMNS = 4;
-    private int timerCount = 17; // <-- change this freely
+    private int timerCount = 17;
     private static final int COPY_FILE_REQUEST_CODE = 2;
-    private String filename = "data.txt";
+    private String filename = "data.json";
     private String content = "testing1234";
 
     @Override
@@ -30,35 +38,54 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //timerCount = timerCount(this);
+
         GridLayout grid = findViewById(R.id.timerGrid);
         grid.setColumnCount(COLUMNS);
 
         createTimerButtons(grid, timerCount);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
     }
 
     private void createTimerButtons(GridLayout grid, int count) {
         grid.removeAllViews();
 
         for (int i = 0; i < count; i++) {
+            final int timerIndex = i;
+
             Button button = new Button(this);
-            int timerIndex = i;
 
-            button.setText("Timer " + (i + 1));
+            // Text (simple index for clean look)
+            button.setText(String.valueOf(i + 1));
+            button.setTextSize(14);
+            button.setTextColor(android.graphics.Color.parseColor("#FFFFFF"));
+            button.setAllCaps(false);
 
-            button.setOnClickListener(v -> {
-                onTimerButtonPressed(timerIndex);
-            });
+            // Circular outline background
+            button.setBackgroundResource(R.drawable.timer_button_circle);
 
+            // Remove default button padding & tint
+            button.setPadding(0, 0, 0, 0);
+            button.setBackgroundTintList(null);
+
+            // Click behavior
+            button.setOnClickListener(v -> onTimerButtonPressed(timerIndex));
+
+            // Layout params (DO NOT use weight with circles)
             GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = 0;
+            params.width = GridLayout.LayoutParams.WRAP_CONTENT;
             params.height = GridLayout.LayoutParams.WRAP_CONTENT;
-            params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-            params.setMargins(8, 8, 8, 8);
+            params.setMargins(16, 16, 16, 16);
 
             button.setLayoutParams(params);
             grid.addView(button);
         }
+
+
     }
+
 
     private void onTimerButtonPressed(int timerIndex) {
         if (timerIndex == 0) { // Timer 1: Create the file in app storage
@@ -123,6 +150,27 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
             Toast.makeText(this, "Failed to copy file: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public static int getTimerCount(Context context) {
+        File file = new File(context.getFilesDir(), "data.json");
+
+        if (!file.exists() || file.length() == 0) {
+            return 0;
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+
+        try {
+            JsonNode root = mapper.readTree(file);
+            JsonNode timersNode = root.path("timers");
+
+            return timersNode.isObject() ? timersNode.size() : 0;
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return 0;
         }
     }
 }
