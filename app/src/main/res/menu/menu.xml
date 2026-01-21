@@ -3,12 +3,21 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <!-- https://www.youtube.com/watch?v=iCMtEWz1BWc -->
 
+
+
+    <item android:id="@+id/create_button"
+        android:title="Create Timer">
+    </item>
+
+    <item android:id="@+id/delete_button"
+        android:title="Delete Timer">
+    </item>
+
     <item android:id="@+id/export_button"
         android:title="Export Data">
     </item>
 
-    <item android:id="@+id/create_button"
-        android:title="Create Timer">
-
+    <item android:id="@+id/about_button"
+        android:title="About">
     </item>
 </menu>

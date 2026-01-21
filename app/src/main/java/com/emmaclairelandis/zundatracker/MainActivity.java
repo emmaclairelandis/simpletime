@@ -1,5 +1,6 @@
 package com.emmaclairelandis.zundatracker;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -32,15 +33,15 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int COLUMNS = 1;
     private static final int COPY_FILE_REQUEST_CODE = 2;
+    private final String filename = "data.json";
 
-    private String filename = "data.json";
-
+    @SuppressLint({"MissingInflatedId"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // ✅ Use the activity layout, not the menu
         setContentView(R.layout.activity_main);
 
-        // Ensure data.json exists
         ensureDataFileExists();
 
         GridLayout grid = findViewById(R.id.timerGrid);
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        // Kebab menu button
         Button kebabButton = findViewById(R.id.button);
         kebabButton.setOnClickListener(v -> showKebabMenu((Button) v));
     }
@@ -70,14 +72,23 @@ public class MainActivity extends AppCompatActivity {
         popupMenu.setOnMenuItemClickListener(item -> {
             int id = item.getItemId();
 
-            if (id == R.id.export_button) {
-                // Launch Save-As dialog
-                copyFileToUserLocation(filename); // ✅ only 1 argument
+            if (id == R.id.create_button) {
+                showCreateTimerDialog();
                 return true;
             }
 
-            if (id == R.id.create_button) {
-                showCreateTimerDialog();
+            if (id == R.id.delete_button) {
+                showDeleteTimerDialog();
+                return true;
+            }
+
+            if (id == R.id.export_button) {
+                copyFileToUserLocation(filename);
+                return true;
+            }
+
+            if (id == R.id.about_button) {
+                gotoUrl("https://github.com/zundatracker/zundatracker");
                 return true;
             }
 
@@ -104,6 +115,25 @@ public class MainActivity extends AppCompatActivity {
                 .setNegativeButton("Cancel", null)
                 .show();
     }
+
+    private void showDeleteTimerDialog() {
+        EditText input = new EditText(this);
+        input.setHint("Timer name to delete");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Timer")
+                .setView(input)
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    String timerName = input.getText().toString().trim();
+                    if (!timerName.isEmpty()) {
+                        TimerManager.deleteTimer(MainActivity.this, timerName);
+                        recreate(); // refresh UI so deleted timer disappears
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
 
     // ---------------- TIMER BUTTONS ----------------
     private void createTimerButtons(GridLayout grid, int count) {
@@ -137,18 +167,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ---------------- FILE EXPORT ----------------
-
-    // Launch Save-As dialog
     public void copyFileToUserLocation(String suggestedFileName) {
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*"); // or "application/json"
+        intent.setType("application/json");
         intent.putExtra(Intent.EXTRA_TITLE, suggestedFileName);
 
         startActivityForResult(intent, COPY_FILE_REQUEST_CODE);
     }
 
-    // Handle user's chosen location
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -162,7 +189,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Copy file to the chosen Uri
     private void copyFileToUri(File srcFile, Uri destUri) {
         try (FileInputStream in = new FileInputStream(srcFile);
              OutputStream out = getContentResolver().openOutputStream(destUri)) {
@@ -184,15 +210,11 @@ public class MainActivity extends AppCompatActivity {
     // ---------------- DATA.JSON MANAGEMENT ----------------
     private void ensureDataFileExists() {
         File file = new File(getFilesDir(), "data.json");
-
-        if (!file.exists()) {
-            createInternalFile();
-        }
+        if (!file.exists()) createInternalFile();
     }
 
     private void createInternalFile() {
         File file = new File(getFilesDir(), "data.json");
-
         if (file.exists()) return;
 
         ObjectMapper mapper = new ObjectMapper();
@@ -209,7 +231,6 @@ public class MainActivity extends AppCompatActivity {
     // ---------------- TIMER COUNT ----------------
     public static int getTimerCount(Context context) {
         File file = new File(context.getFilesDir(), "data.json");
-
         if (!file.exists() || file.length() == 0) return 0;
 
         ObjectMapper mapper = new ObjectMapper();
@@ -219,6 +240,16 @@ public class MainActivity extends AppCompatActivity {
             return timers.isObject() ? timers.size() : 0;
         } catch (IOException e) {
             return 0;
+        }
+    }
+
+    // ---------------- OPEN URL ----------------
+    private void gotoUrl(String s) {
+        try {
+            Uri uri = Uri.parse(s);
+            startActivity(new Intent(Intent.ACTION_VIEW, uri));
+        } catch (Exception e) {
+            Toast.makeText(this, "Error opening website.", Toast.LENGTH_SHORT).show();
         }
     }
 }

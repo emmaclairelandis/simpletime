@@ -1,18 +1,16 @@
 package com.emmaclairelandis.zundatracker;
 
 import android.content.Context;
+//Might want to swap this for something more robust
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Iterator;
-import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.JsonNode; 
 
 public class TimerManager {
-    static Scanner scanner;
     //static File dataFile = new File("data.json"); // The variable to refer to our little data.json file
     private static final String FILE_NAME = "data.json";
     /*
@@ -148,35 +146,46 @@ public class TimerManager {
             }
         }
         return lastSession;
-    }    
+    }
 
-    public static void deleteTimer() {
+     */
 
-        if(scanner.hasNextLine()) scanner.nextLine();
-
-        System.out.print("Which timer would you like to delete: ");
-        String timerName = scanner.nextLine();
-
+    public static void deleteTimer(Context context, String timerName) {
         ObjectMapper mapper = new ObjectMapper();
+        File dataFile = new File(context.getFilesDir(), FILE_NAME);
 
         try {
-            JsonNode root = mapper.readTree(new File("data/data.json"));
+            ObjectNode root;
+            if (dataFile.exists() && dataFile.length() > 0) {
+                root = (ObjectNode) mapper.readTree(dataFile);
+            } else {
+                root = mapper.createObjectNode();
+            }
 
-            ObjectNode rootObj = (ObjectNode) root;
-            ObjectNode timersNode = (ObjectNode) rootObj.get("timers");
+            ObjectNode timersNode;
+            if (root.has("timers")) {
+                timersNode = (ObjectNode) root.get("timers");
+            } else {
+                // Nothing to delete
+                return;
+            }
 
-            timersNode.remove(timerName);
+            if (timersNode.has(timerName)) {
+                timersNode.remove(timerName);
+                // Write updated JSON back
+                mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
+                System.out.println("Timer \"" + timerName + "\" deleted successfully!");
+            } else {
+                System.out.println("Timer \"" + timerName + "\" not found.");
+            }
 
-            mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
-            
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e("ZundaTracker", "Failed to export file", e);
         }
-
-        System.out.println("\nTimer has successfully been deleted.");
-        if(scanner.hasNextLine()) scanner.nextLine();
     }
-    */
+
+
+
     public static void newTimer(Context context, String timerName) {
 
         ObjectMapper mapper = new ObjectMapper();
@@ -207,7 +216,8 @@ public class TimerManager {
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
 
         } catch (IOException e) {
-            e.printStackTrace();
+            // Sends the logs to logcat, not to the user or any persistent file
+            Log.e("ZundaTracker", "Failed to export file", e);
         }
     }
 
