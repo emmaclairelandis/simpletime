@@ -1,5 +1,7 @@
 package com.emmaclairelandis.zundatracker;
 
+import android.content.Context;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
@@ -11,7 +13,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class TimerManager {
     static Scanner scanner;
-    static File dataFile = new File("data.json"); // The variable to refer to our little data.json file
+    //static File dataFile = new File("data.json"); // The variable to refer to our little data.json file
+    private static final String FILE_NAME = "data.json";
     /*
     public static void startTimer() {
         ObjectMapper mapper = new ObjectMapper();
@@ -174,9 +177,10 @@ public class TimerManager {
         if(scanner.hasNextLine()) scanner.nextLine();
     }
     */
-    public static void newTimer(String timerName) {
+    public static void newTimer(Context context, String timerName) {
 
         ObjectMapper mapper = new ObjectMapper();
+        File dataFile = new File(context.getFilesDir(), FILE_NAME);
 
         try {
 

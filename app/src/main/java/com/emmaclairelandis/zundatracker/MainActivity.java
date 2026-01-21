@@ -21,12 +21,12 @@ import androidx.core.view.WindowInsetsCompat;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,14 +34,14 @@ public class MainActivity extends AppCompatActivity {
     private static final int COPY_FILE_REQUEST_CODE = 2;
 
     private String filename = "data.json";
-    private String content = "{\n" +
-            "  \"timers\" : { }\n" +
-            "}";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        // Ensure data.json exists
+        ensureDataFileExists();
 
         GridLayout grid = findViewById(R.id.timerGrid);
         grid.setColumnCount(COLUMNS);
@@ -63,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ---------------- KEBAB MENU ----------------
-
     private void showKebabMenu(Button anchor) {
         PopupMenu popupMenu = new PopupMenu(this, anchor);
         popupMenu.getMenuInflater().inflate(R.menu.menu, popupMenu.getMenu());
@@ -72,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
             int id = item.getItemId();
 
             if (id == R.id.export_button) {
-                copyFileToUserLocation(filename);
+                // Launch Save-As dialog
+                copyFileToUserLocation(filename); // ✅ only 1 argument
                 return true;
             }
 
@@ -97,7 +97,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPositiveButton("Create", (dialog, which) -> {
                     String timerName = input.getText().toString().trim();
                     if (!timerName.isEmpty()) {
-                        TimerManager.newTimer(timerName);
+                        TimerManager.newTimer(MainActivity.this, timerName);
                         recreate(); // refresh UI
                     }
                 })
@@ -106,7 +106,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // ---------------- TIMER BUTTONS ----------------
-
     private void createTimerButtons(GridLayout grid, int count) {
         grid.removeAllViews();
 
@@ -139,25 +138,17 @@ public class MainActivity extends AppCompatActivity {
 
     // ---------------- FILE EXPORT ----------------
 
-    private void createInternalFile() {
-        try (FileOutputStream fos = openFileOutput(filename, MODE_PRIVATE)) {
-            fos.write(content.getBytes());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
+    // Launch Save-As dialog
     public void copyFileToUserLocation(String suggestedFileName) {
-        createInternalFile();
-
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("*/*");
+        intent.setType("*/*"); // or "application/json"
         intent.putExtra(Intent.EXTRA_TITLE, suggestedFileName);
 
         startActivityForResult(intent, COPY_FILE_REQUEST_CODE);
     }
 
+    // Handle user's chosen location
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -165,11 +156,13 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == COPY_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             if (data != null && data.getData() != null) {
                 File srcFile = new File(getFilesDir(), filename);
-                copyFileToUri(srcFile, data.getData());
+                Uri destUri = data.getData();
+                copyFileToUri(srcFile, destUri);
             }
         }
     }
 
+    // Copy file to the chosen Uri
     private void copyFileToUri(File srcFile, Uri destUri) {
         try (FileInputStream in = new FileInputStream(srcFile);
              OutputStream out = getContentResolver().openOutputStream(destUri)) {
@@ -184,11 +177,36 @@ public class MainActivity extends AppCompatActivity {
 
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(this, "Failed to export file", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    // ---------------- DATA.JSON MANAGEMENT ----------------
+    private void ensureDataFileExists() {
+        File file = new File(getFilesDir(), "data.json");
+
+        if (!file.exists()) {
+            createInternalFile();
+        }
+    }
+
+    private void createInternalFile() {
+        File file = new File(getFilesDir(), "data.json");
+
+        if (file.exists()) return;
+
+        ObjectMapper mapper = new ObjectMapper();
+        ObjectNode root = mapper.createObjectNode();
+        root.set("timers", mapper.createObjectNode());
+
+        try {
+            mapper.writerWithDefaultPrettyPrinter().writeValue(file, root);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     // ---------------- TIMER COUNT ----------------
-
     public static int getTimerCount(Context context) {
         File file = new File(context.getFilesDir(), "data.json");
 
