@@ -7,12 +7,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Gravity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.PopupMenu;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -27,8 +29,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,6 +43,11 @@ public class MainActivity extends AppCompatActivity {
     private static final int COLUMNS = 1;
     private static final int COPY_FILE_REQUEST_CODE = 2;
     private final String filename = "data.json";
+    // Timer HH:MM:SS stuff
+    private final Handler timerHandler = new Handler();
+    private final Map<String, TextView> timerViews = new HashMap<>();
+    private final Map<String, Long> runningStartTimes = new HashMap<>();
+
 
     @SuppressLint({"MissingInflatedId"})
     @Override
@@ -52,8 +61,8 @@ public class MainActivity extends AppCompatActivity {
         GridLayout grid = findViewById(R.id.timerGrid);
         grid.setColumnCount(COLUMNS);
 
-        List<String> timerNames = getTimerNames(this);
-        createTimerButtons(grid, timerNames);
+
+        createTimerButtons(grid);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -141,52 +150,175 @@ public class MainActivity extends AppCompatActivity {
 
 
     // ---------------- TIMER BUTTONS ----------------
-    private void createTimerButtons(GridLayout grid, List<String> timerNames) {
+    // ---------------- TIMER BUTTONS ----------------
+    private void createTimerButtons(GridLayout grid) {
         grid.removeAllViews();
+        grid.setColumnCount(2);
+        grid.setUseDefaultMargins(false);
 
-        for (int i = 0; i < timerNames.size(); i++) {
-            String timerName = timerNames.get(i);
+        timerViews.clear();
+        runningStartTimes.clear();
 
-            Button button = new Button(this);
+        ObjectMapper mapper = new ObjectMapper();
+        File file = new File(getFilesDir(), filename);
 
-            // Text
-            button.setText(timerName);
-            button.setTextSize(16);
-            button.setAllCaps(false);
-            button.setTextColor(0xFFFFFFFF); // white text
+        try {
+            ObjectNode root = (ObjectNode) mapper.readTree(file);
+            ObjectNode timers = (ObjectNode) root.get("timers");
 
-            // 🔹 Make button invisible
-            button.setBackground(null);
-            button.setElevation(0f);
-            button.setStateListAnimator(null);
+            Iterator<String> names = timers.fieldNames();
+            while (names.hasNext()) {
+                String timerName = names.next();
 
-            // 🔹 Left align text
-            button.setGravity(Gravity.START | Gravity.CENTER_VERTICAL);
+                // -------- LEFT: TIMER NAME (TEXT-ONLY BUTTON) --------
+                Button nameButton = new Button(this);
+                nameButton.setText(timerName);
+                nameButton.setAllCaps(false);
+                nameButton.setBackground(null);
+                nameButton.setTextColor(0xFFFFFFFF);
+                nameButton.setTextSize(20);
 
-            // Padding for touch comfort
-            button.setPadding(24, 32, 24, 32);
+                // kill default button padding / height
+                nameButton.setPadding(0, 0, 0, 0);
+                nameButton.setMinHeight(0);
+                nameButton.setMinimumHeight(0);
 
-            button.setOnClickListener(v -> onTimerButtonPressed(timerName));
+                nameButton.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_START);
+                nameButton.setOnClickListener(v -> onTimerButtonPressed(timerName));
 
-            GridLayout.LayoutParams buttonParams = new GridLayout.LayoutParams();
-            buttonParams.width = GridLayout.LayoutParams.MATCH_PARENT;
-            buttonParams.height = GridLayout.LayoutParams.WRAP_CONTENT;
-            buttonParams.setMargins(0, 0, 0, 0);
-            button.setLayoutParams(buttonParams);
+                GridLayout.LayoutParams nameLp = new GridLayout.LayoutParams();
+                nameLp.width = 0;
+                nameLp.columnSpec = GridLayout.spec(0, 1f);
+                nameLp.setMargins(16, 16, 8, 16);
+                nameButton.setLayoutParams(nameLp);
 
-            grid.addView(button);
+                // -------- RIGHT: HH:MM:SS --------
+                TextView timeView = new TextView(this);
+                timeView.setText("00:00:00");
+                timeView.setTextColor(0xFFFFFFFF);
+                timeView.setTextSize(20);
 
-            // Divider (except after last)
-            if (i < timerNames.size() - 1) {
-                grid.addView(createDivider());
+                timeView.setPadding(0, 0, 0, 0);
+                timeView.setMinHeight(0);
+
+                timeView.setGravity(Gravity.END);
+                timeView.setTextAlignment(View.TEXT_ALIGNMENT_VIEW_END);
+
+                GridLayout.LayoutParams timeLp = new GridLayout.LayoutParams();
+                timeLp.width = 0;
+                timeLp.columnSpec = GridLayout.spec(1, 1f);
+                timeLp.setMargins(8, 8, 16, 8);
+                timeView.setLayoutParams(timeLp);
+
+                timerViews.put(timerName, timeView);
+
+                // -------- CHECK IF RUNNING --------
+                ObjectNode sessions = (ObjectNode) timers.get(timerName).get("sessions");
+                Long start = TimerManager.getRunningStartTime(sessions);
+                if (start != null) {
+                    runningStartTimes.put(timerName, start);
+                }
+
+                // -------- ADD TO GRID --------
+                grid.addView(nameButton);
+                grid.addView(timeView);
+
+                // -------- DIVIDER (NO EXTRA HEIGHT) --------
+                View divider = new View(this);
+                divider.setBackgroundColor(0xFF2A2A2A);
+
+                GridLayout.LayoutParams divLp = new GridLayout.LayoutParams();
+                divLp.width = GridLayout.LayoutParams.MATCH_PARENT;
+                divLp.height = 1;
+                divLp.columnSpec = GridLayout.spec(0, 2);
+                divider.setLayoutParams(divLp);
+
+                grid.addView(divider);
             }
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
+        startTicker();
+    }
+
+
+    private void addDivider(GridLayout grid) {
+        View divider = new View(this);
+        GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+        params.width = GridLayout.LayoutParams.MATCH_PARENT;
+        params.height = 1;
+        params.setMargins(0, 8, 0, 8);
+        divider.setLayoutParams(params);
+        divider.setBackgroundColor(0xFF2A2A2A);
+        grid.addView(divider);
+    }
+
+    private void startTicker() {
+        timerHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                long now = System.currentTimeMillis() / 1000;
+
+                for (String name : timerViews.keySet()) {
+                    TextView view = timerViews.get(name);
+                    Long start = runningStartTimes.get(name);
+
+                    if (start != null) {
+                        long elapsed = now - start;
+                        view.setText(formatTime(elapsed));
+                    } else {
+                        view.setText("00:00:00");
+                    }
+                }
+
+                timerHandler.postDelayed(this, 1000);
+            }
+        }, 1000);
+    }
+
+    private String formatTime(long seconds) {
+        long h = seconds / 3600;
+        long m = (seconds % 3600) / 60;
+        long s = seconds % 60;
+        return String.format("%02d:%02d:%02d", h, m, s);
     }
 
 
     private void onTimerButtonPressed(String timerName) {
-        Toast.makeText(this, "Timer: " + timerName, Toast.LENGTH_SHORT).show();
+        boolean started = TimerManager.startTimer(this, timerName);
+
+        if (started) {
+            runningStartTimes.put(timerName, System.currentTimeMillis() / 1000);
+            return;
+        }
+
+        boolean stopped = TimerManager.stopTimer(this, timerName);
+        if (stopped) {
+            runningStartTimes.remove(timerName);
+        }
     }
+
+
+    private static ObjectNode getMostRecentSession(ObjectNode sessionsNode) {
+        int max = -1;
+        ObjectNode last = null;
+
+        Iterator<String> it = sessionsNode.fieldNames();
+        while (it.hasNext()) {
+            String key = it.next();
+            try {
+                int n = Integer.parseInt(key);
+                if (n > max) {
+                    max = n;
+                    last = (ObjectNode) sessionsNode.get(key);
+                }
+            } catch (NumberFormatException ignored) {}
+        }
+        return last;
+    }
+
 
     // ---------------- FILE EXPORT ----------------
     public void copyFileToUserLocation(String suggestedFileName) {
