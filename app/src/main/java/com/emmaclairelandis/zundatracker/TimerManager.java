@@ -1,17 +1,18 @@
-/*
 package com.emmaclairelandis.zundatracker;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Iterator;
+import java.util.Scanner;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.JsonNode; 
 
 public class TimerManager {
-
+    static Scanner scanner;
     static File dataFile = new File("data.json"); // The variable to refer to our little data.json file
-
+    /*
     public static void startTimer() {
         ObjectMapper mapper = new ObjectMapper();
     
@@ -172,27 +173,20 @@ public class TimerManager {
         System.out.println("\nTimer has successfully been deleted.");
         if(scanner.hasNextLine()) scanner.nextLine();
     }
-
-    public static void newTimer() {
-
-        if(scanner.hasNextLine()) scanner.nextLine();
-
-        System.out.print("What would you like to name your timer: ");
-        String timerName = scanner.nextLine();
+    */
+    public static void newTimer(String timerName) {
 
         ObjectMapper mapper = new ObjectMapper();
 
         try {
 
-            // Read existing JSON if file exists, otherwise create root
             ObjectNode root;
             if (dataFile.exists() && dataFile.length() > 0) {
                 root = (ObjectNode) mapper.readTree(dataFile);
             } else {
                 root = mapper.createObjectNode();
             }
-        
-            // Ensure "timers" node exists
+
             ObjectNode timersNode;
             if (root.has("timers")) {
                 timersNode = (ObjectNode) root.get("timers");
@@ -200,25 +194,17 @@ public class TimerManager {
                 timersNode = mapper.createObjectNode();
                 root.set("timers", timersNode);
             }
-        
-            // Create the new timer node
+
             ObjectNode timerNode = mapper.createObjectNode();
-            ObjectNode sessionsNode = mapper.createObjectNode(); // empty sessions for now
-            timerNode.set("sessions", sessionsNode);
-        
-            // Add the timer to timers
+            timerNode.set("sessions", mapper.createObjectNode());
+
             timersNode.set(timerName, timerNode);
-        
-            // Write back to file
+
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, root);
 
-            System.out.println("Timer \"" + timerName + "\" created successfully!");
-            System.out.print("\nPlease press enter to return to the main menu...");
-            if(scanner.hasNextLine()) scanner.nextLine();
-        
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 }
- */
